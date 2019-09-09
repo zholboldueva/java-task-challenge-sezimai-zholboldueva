@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 
 public class DataEvaluatingClass {
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         ArrayList<Data> l_dataList = new ArrayList<>();
         ArrayList<Operation> l_operationList = new ArrayList<>();
         readDataXmlFile(l_dataList);
@@ -56,15 +56,13 @@ public class DataEvaluatingClass {
 
             System.out.println("Done creating XML File");
 
-        } catch (ParserConfigurationException p_pce) {
+        } catch (ParserConfigurationException | TransformerException p_pce) {
             p_pce.printStackTrace();
-        } catch (TransformerException p_tfe) {
-            p_tfe.printStackTrace();
         }
     }
 
-
-    public static void readDataXmlFile(ArrayList<Data> p_dataList) {
+    //reads data from data.xml and and gather all knodes with its attributes in ArrayList<Data> p_dataList
+    private static void readDataXmlFile(ArrayList<Data> p_dataList) {
 
         try {
             Document doc = getDocument("data.xml");
@@ -88,8 +86,8 @@ public class DataEvaluatingClass {
     }
 
 
-
-    public static void readOperationsXmlFile(ArrayList<Operation> p_operationList) {
+    //reads data from operations.xml and and gather all it's knodes with its attributes in ArrayList<Operation> p_operationList
+    private static void readOperationsXmlFile(ArrayList<Operation> p_operationList) {
         try {
 
             Document l_doc = getDocument("operations.xml");
@@ -112,7 +110,8 @@ public class DataEvaluatingClass {
         }
     }
 
-    public static List<Result> getResult(List<Data> p_dataList, List<Operation> p_operationList) {
+    //gathers data after filtering with operations
+    private static List<Result> getResult(List<Data> p_dataList, List<Operation> p_operationList) {
         List<Result> l_resultList = new ArrayList<>();
         Map<Operation, ArrayList<String>> l_dataMap = new HashMap<>();
         filter(p_dataList, p_operationList, l_dataMap);
@@ -125,6 +124,7 @@ public class DataEvaluatingClass {
         return l_resultList;
     }
 
+    //reads xml.data
     private static Document getDocument(String s) throws ParserConfigurationException, SAXException, IOException {
         File l_fXmlFile = new File(s);
         DocumentBuilderFactory l_dbFactory = DocumentBuilderFactory.newInstance();
@@ -134,6 +134,7 @@ public class DataEvaluatingClass {
         return doc;
     }
 
+    //filters data
     private static void filter(List<Data> p_dataList, List<Operation> p_operationList, Map<Operation, ArrayList<String>> p_dataMap) {
         for (Operation l_operation : p_operationList) {
             ArrayList<String> l_list = new ArrayList<>();
@@ -153,20 +154,27 @@ public class DataEvaluatingClass {
         }
     }
 
+    //uses data depending on func-Attribute of operations.xml
     private static double function(Operation p_operation, ArrayList<String> p_dataList) {
         double[] p_doubleList = new double[p_dataList.size()];
         for (int i = 0; i < p_dataList.size(); ++i) {
             p_doubleList[i] = Double.parseDouble(p_dataList.get(i));
         }
         double k = 0.00;
-        if (p_operation.getFunc().equals("average"))
-            k = Arrays.stream(p_doubleList).average().getAsDouble();
-        else if (p_operation.getFunc().equals("sum"))
-            k = Arrays.stream(p_doubleList).sum();
-        else if (p_operation.getFunc().equals("min")) {
-            k = Arrays.stream(p_doubleList).min().getAsDouble();
-        } else if (p_operation.getFunc().equals("max"))
-            k = Arrays.stream(p_doubleList).max().getAsDouble();
+        switch (p_operation.getFunc()) {
+            case "average":
+                k = Arrays.stream(p_doubleList).average().getAsDouble();
+                break;
+            case "sum":
+                k = Arrays.stream(p_doubleList).sum();
+                break;
+            case "min":
+                k = Arrays.stream(p_doubleList).min().getAsDouble();
+                break;
+            case "max":
+                k = Arrays.stream(p_doubleList).max().getAsDouble();
+                break;
+        }
         return k;
     }
 
